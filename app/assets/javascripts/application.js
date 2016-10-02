@@ -96,7 +96,7 @@ $(document).ready(function() {
     "columnDefs": [
       { "orderable": false, "targets": [ "no_sort" ] }
     ]
-  })
+  });
 
   // For DataTables in Bootstrap tabs
   // see https://datatables.net/examples/api/tabs_and_scrolling.html
