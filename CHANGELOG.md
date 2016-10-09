@@ -29,6 +29,7 @@
 * Refactor EquipmentItem model spec ([#1610](https://github.com/YaleSTC/reservations/issues/1600)).
 * Refactor Users controller spec ([#1595](https://github.com/YaleSTC/reservations/issues/1595)).
 * Refactor Categories controller spec ([#1589](https://github.com/YaleSTC/reservations/issues/1589)).
+* Overhaul seed script ([#1327](https://github.com/YaleSTC/reservations/issues/1327)).
 
 ## v6.1.0 - 2016-06-01
 ### Fixed
