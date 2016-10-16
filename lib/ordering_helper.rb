@@ -43,7 +43,8 @@ class OrderingHelper
     deleted = EquipmentModel.where(category_id: @category_id)
                             .where('deleted_at IS NOT NULL')
     deleted.each do |d_model|
-      d_model.update_attribute('ordering', -1).save
+      d_model.update_attribute('ordering', -1)
+      d_model.save
     end
   end
 
@@ -61,7 +62,8 @@ class OrderingHelper
     (duplicates + out_of_bounds).each do |dup|
       model = EquipmentModel.where(category_id: @category_id,
                                    ordering: dup).first
-      model.update_attribute('ordering', missing.shift).save
+      model.update_attribute('ordering', missing.shift)
+      model.save
     end
     self
   end

@@ -63,4 +63,20 @@ describe OrderingHelper do
       expect(eq_model3.reload.ordering).to eq(3)
     end
   end
+  describe 'deactivate' do 
+    it 'handles ordering on deactivation' do
+      category = FactoryGirl.create(:category)
+        eq_model1 = FactoryGirl.create(:equipment_model, category: category)
+        eq_model2 = FactoryGirl.create(:equipment_model,
+                                       category: category,
+                                       ordering: 2)
+        eq_model3 = FactoryGirl.create(:equipment_model,
+                                       category: category,
+                                       ordering: 3)
+         OrderingHelper.new(eq_model2).deactivate_order
+        expect(eq_model1.reload.ordering).to eq(1)
+        expect(eq_model2.reload.ordering).to eq(-1)
+        expect(eq_model3.reload.ordering).to eq(2)
+      end
+    end
 end
