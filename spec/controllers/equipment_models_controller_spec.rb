@@ -102,7 +102,8 @@ describe EquipmentModelsController, type: :controller do
 
       context 'unsuccessful save' do
         before do
-          model = EquipmentModel.new
+          #model = EquipmentModel.new
+          model = EquipmentModelMock.new(save: false)
           allow(EquipmentModel).to receive(:new).and_return(model)
           post :create, equipment_model: { id: model.id }
         end
@@ -138,9 +139,9 @@ describe EquipmentModelsController, type: :controller do
 
       context 'unsuccessful update' do
         before do
-          model = EquipmentModel.new
-          #model = EquipmentModelMock.new(traits: [:findable],
-          #                               update_attributes: false)
+          #model = EquipmentModel.new
+          model = EquipmentModelMock.new(traits: [:findable, :with_category],
+                                         update_attributes: false)
           put :update, id: model.id, equipment_model: { name: 'Model' }
         end
         it { is_expected.not_to set_flash }
@@ -176,31 +177,28 @@ describe EquipmentModelsController, type: :controller do
       it_behaves_like 'not confirmed', :notice, deactivation_cancelled: true
 
       context 'confirmed' do
-        #let!(:model) { EquipmentModel.new(id: 1) }
-
-        #model = EquipmentModel.new(id: 1)
-
-        #let!(:modello) { EquipmentModel.new }
-        #before do
-        #  request.env['HTTP_REFERER'] = 'where_i_came_from'
-        #  put :deactivate, id: modello.id, deactivation_confirmed: true
-        #end
-        #it { is_expected.to set_flash[:notice] }
-        #it { is_expected.to redirect_to('where_i_came_from') }
-        it 'deactivates model' do
-          category = FactoryGirl.create(:category)
-          model = FactoryGirl.create(:equipment_model, category: category)
+        let!(:model) { EquipmentModelMock.new(traits: [:findable, :with_category]) }
+        let!(:orderer) { instance_spy('OrderingHelper')}
+        before do
+          allow(OrderingHelper).to receive(:new).with(model).and_return(orderer)
+          allow(orderer).to receive(:deactivate_order)
+          request.env['HTTP_REFERER'] = 'where_i_came_from'
           put :deactivate, id: model.id, deactivation_confirmed: true
-          #expect(model).to have_received(:destroy)
-          #binding.pry
-          expect(model.reload.deleted_at).to_be truthy
+        end
+        it { is_expected.to set_flash[:notice] }
+        it { is_expected.to redirect_to('where_i_came_from') }
+        it 'deactivates model' do
+          expect(orderer).to have_received(:deactivate_order)
+          expect(model).to have_received(:destroy)
         end
       end
 
       context 'with reservations' do
         it "archives the model's reservations on deactivation" do
-          model = EquipmentModelMock.new(traits: [:findable])
+          orderer = instance_spy('OrderingHelper')
+          model = EquipmentModelMock.new(traits: [:findable, :with_category])
           res = ReservationMock.new
+          allow(OrderingHelper).to receive(:new).with(model).and_return(orderer)
           # stub out scope chain -- SMELL
           allow(Reservation).to receive(:for_eq_model).and_return(Reservation)
           allow(Reservation).to receive(:finalized).and_return([res])

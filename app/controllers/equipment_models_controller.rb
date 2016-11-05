@@ -81,14 +81,10 @@ class EquipmentModelsController < ApplicationController
     @equipment_model = EquipmentModel.new(category: @category)
   end
 
-  def count_cat(cat_id)
-    EquipmentModel.where(category_id: cat_id, deleted_at: nil).count
-  end
-
   def create
     @equipment_model = EquipmentModel.new(equipment_model_params)
-    OrderingHelper.new(@equipment_model).assign_order
     if @equipment_model.save
+      OrderingHelper.new(@equipment_model).assign_order
       flash[:notice] = 'Successfully created equipment model.'
       redirect_to @equipment_model
     else
@@ -119,12 +115,12 @@ class EquipmentModelsController < ApplicationController
   end
 
   def up
-    OrderingHelper.new(@equipment_model).up.verify_order
+    OrderingHelper.new(@equipment_model).up#.verify_order
     redirect_to request.referer
   end
 
   def down
-    OrderingHelper.new(@equipment_model).down.verify_order
+    OrderingHelper.new(@equipment_model).down#.verify_order
     redirect_to request.referer
   end
 
@@ -141,7 +137,7 @@ class EquipmentModelsController < ApplicationController
         r.archive(current_user, 'The equipment model was deactivated.')
          .save(validate: false)
       end
-      OrderingHelper.new(@equipment_model).deactivate_order.verify_order
+      OrderingHelper.new(@equipment_model).deactivate_order#.verify_order
       super
     else
       flash[:error] = 'Oops, something went wrong.'

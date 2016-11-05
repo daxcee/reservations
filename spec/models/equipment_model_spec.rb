@@ -103,8 +103,11 @@ describe EquipmentModel, type: :model do
       it_behaves_like 'string attribute', :replacement_fee
     end
     describe 'ordering' do
-      it_behaves_like 'integer attribute', :ordering
-      it_behaves_like 'allows 0', :ordering
+      it { is_expected.to validate_presence_of(:ordering) }
+      it { is_expected.not_to allow_value(-2).for(:ordering) }
+      it { is_expected.not_to allow_value(2.3).for(:ordering) }
+      #it_behaves_like 'integer attribute', :ordering
+      #it_behaves_like 'allows 0', :ordering
     end
   end
 

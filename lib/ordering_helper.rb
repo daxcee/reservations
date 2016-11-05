@@ -3,8 +3,7 @@ class OrderingHelper
   def initialize(equipment_model)
     @equipment_model = equipment_model
     @category_id = @equipment_model.category_id
-    @category_count = EquipmentModel.where(category_id: @category_id,
-                                           deleted_at: nil).count
+    @category_count = equipment_model.category.active_models_count
     @ordering = @equipment_model.ordering
   end
 
@@ -23,7 +22,7 @@ class OrderingHelper
       target.update_attribute('ordering', @ordering)
       target.save
     end
-    self
+    self.verify_order
   end
 
   def down
@@ -36,7 +35,7 @@ class OrderingHelper
       target.update_attribute('ordering', @ordering)
       target.save
     end
-    self
+    self.verify_order
   end
 
   def handle_deleted
@@ -75,6 +74,6 @@ class OrderingHelper
       m.update_attribute('ordering', m.ordering - 1)
     end
     @equipment_model.update_attribute('ordering', -1)
-    self
+    self#.verify_order
   end
 end
