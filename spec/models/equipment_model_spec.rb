@@ -13,7 +13,6 @@ describe EquipmentModel, type: :model do
   end
 
   describe 'basic validations' do
-    let!(:model) { mock_eq_model }
     it { is_expected.to have_and_belong_to_many(:requirements) }
     it { is_expected.to have_many(:equipment_items) }
     it { is_expected.to have_many(:reservations) }
@@ -28,6 +27,7 @@ describe EquipmentModel, type: :model do
     it { is_expected.to belong_to(:category) }
     it { is_expected.to validate_presence_of(:ordering) }
     it 'requires an associated category' do
+      model = mock_eq_model
       model.category = nil
       expect(model.valid?).to be_falsey
     end
@@ -106,6 +106,30 @@ describe EquipmentModel, type: :model do
       it { is_expected.to validate_presence_of(:ordering) }
       it { is_expected.not_to allow_value(-2).for(:ordering) }
       it { is_expected.not_to allow_value(2.3).for(:ordering) }
+      it 'is unique within a category' do
+        category = FactoryGirl.create(:category)
+        model = FactoryGirl.create(:equipment_model, category: category, ordering: 1)
+        model2 = FactoryGirl.build(:equipment_model, category: category, ordering: 1)
+        expect(model2.valid?).to be_falsey
+      end
+      it 'can be the same in two different categories' do
+        category = FactoryGirl.create(:category)
+        model = FactoryGirl.create(:equipment_model, category: category, ordering: 1)
+        category2 = FactoryGirl.create(:category)
+        model2 = FactoryGirl.build(:equipment_model, category: category2, ordering: 1)
+        expect(model2.valid?).to be_truthy
+      end
+      it 'must be -1 if deactivated' do
+        category = FactoryGirl.create(:category)
+        model = FactoryGirl.build(:equipment_model, category: category, ordering: 1, deleted_at: Time.zone.now)
+        expect(model.valid?).to be_falsey
+      end
+      it 'can be a duplicate if deactivated' do
+        category = FactoryGirl.create(:category)
+        model = FactoryGirl.create(:equipment_model, category: category, ordering: -1, deleted_at: Time.zone.now)
+        model2 = FactoryGirl.build(:equipment_model, category: category, ordering: -1, deleted_at: Time.zone.now)
+        expect(model2.valid?).to be_truthy
+      end
       #it_behaves_like 'integer attribute', :ordering
       #it_behaves_like 'allows 0', :ordering
     end

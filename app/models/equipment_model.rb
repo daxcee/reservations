@@ -62,6 +62,8 @@ class EquipmentModel < ActiveRecord::Base
                             greater_than_or_equal_to: 0 }
 
   validate :not_associated_with_self
+  validate :ordering_uniqueness
+  validate :deactivated_ordering
 
   def not_associated_with_self
     return if associated_equipment_models.where(id: id).blank?
@@ -70,6 +72,18 @@ class EquipmentModel < ActiveRecord::Base
                  + name)
   end
 
+  def ordering_uniqueness
+    return if deleted_at || !category
+    orderings = active_in_category.map(&:ordering)
+    return unless orderings.include?(ordering)
+    errors.add(:ordering, 'Ordering must be unique among active models in category')
+  end
+
+  def deactivated_ordering
+    return unless deleted_at
+    return if ordering == -1
+    errors.add(:ordering, 'Ordering must be -1 for deactivated model')
+  end
   #################
   ## Paperclip   ##
   #################
@@ -153,6 +167,11 @@ class EquipmentModel < ActiveRecord::Base
 
   def maximum_renewal_days_before_due
     renewal_days_before_due || category.maximum_renewal_days_before_due
+  end
+
+  def active_in_category
+    #binding.pry
+    category.active_models
   end
 
   def active_reservations

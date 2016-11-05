@@ -18,8 +18,12 @@ class Category < ActiveRecord::Base
   # 'includes'
   scope :active, ->() { where("#{table_name}.deleted_at is null") }
 
+  def active_models
+    equipment_models.where(deleted_at: nil)
+  end
+
   def active_models_count
-    equipment_models.where(deleted_at: nil).count
+    active_models.count
   end
 
   def maximum_per_user
