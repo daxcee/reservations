@@ -4,12 +4,11 @@ require 'spec_helper'
 
 context 'table operations' do
   before do
+    @eq_model2 =
+      FactoryGirl.create(:equipment_model, category: @category, ordering: 2)
+    @eq_model3 =
+      FactoryGirl.create(:equipment_model, category: @category, ordering: 3)
     @eq_model.update_attribute('ordering', 1)
-    @eq_model2.update_attribute('ordering', 2)
-    @eq_model3.update_attribute('ordering', 3)
-    expect(@eq_model.ordering).to eq(1)
-    expect(@eq_model2.ordering).to eq(2)
-    expect(@eq_model3.ordering).to eq(3)
     sign_in_as_user @superuser
     visit category_equipment_models_path(@category.id)
   end
