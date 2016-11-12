@@ -223,31 +223,79 @@ describe BlackoutsController, type: :controller do
     end
 
     context 'PUT update' do
+      shared_examples_for 'does not update blackout' do |attributes|
+        before { put :update, blackout: attributes }
+
+        it { is_expected.to set_flash }
+        it { is_expected.to render_template(:new) }
+        it 'should not save the blackout' do
+          expect(assigns(:blackout)[:notice]).not_to eq(@new_attributes[:notice])
+        end
+      end
+      
       context 'single blackout' do
         before do
           @new_attributes = FactoryGirl.attributes_for(:blackout)
           @new_attributes[:notice] = 'New Message!!'
           put :update, id: FactoryGirl.create(:blackout),
-                       blackout: @new_attributes
+              blackout: @new_attributes
         end
         it 'updates the blackout' do
           expect(assigns(:blackout)[:notice]).to eq(@new_attributes[:notice])
         end
       end
+      
       context 'recurring blackout' do
         before do
           @new_attributes = FactoryGirl.attributes_for(:blackout)
           @new_attributes[:notice] = 'New Message!!'
           put :update, id: FactoryGirl.create(:blackout, set_id: 1),
-                       blackout: @new_attributes
+              blackout: @new_attributes
         end
         it 'updates the blackout' do
           expect(assigns(:blackout)[:notice]).to eq(@new_attributes[:notice])
         end
         it 'sets the set_id to nil' do
           expect(assigns(:blackout)[:set_id]).to be_nil
-        end
+        end 
       end
+      
+      context 'single blackout with conflicting reservation' do
+        before do
+          FactoryGirl.create(:valid_reservation,
+                             start_date: Time.zone.today,
+                             due_date: Time.zone.today)
+          FactoryGirl.create(:blackout,
+                             start_date: Time.zone.today + 1.day,
+                             end_date: Time.zone.today + 1.day)
+        end
+
+        attributes =
+          FactoryGirl.attributes_for(:blackout,
+                                     notice: 'New Message!!',
+                                     start_date: Time.zone.today)
+
+        it_behaves_like 'does not update blackout', attributes
+      end
+      
+      context 'recurring blackout with conflicting reservation' do
+        before do
+          FactoryGirl.create(:valid_reservation,
+                             start_date: Time.zone.today,
+                             due_date: Time.zone.today)
+          FactoryGirl.create(:blackout,
+                             set_id: 1,
+                             start_date: Time.zone.today + 1.day,
+                             end_date: Time.zone.today + 1.day)
+        end
+
+        attributes =
+          FactoryGirl.attributes_for(:blackout,
+                                     notice: 'New Message!!',
+                                     start_date: Time.zone.today)
+
+        it_behaves_like 'does not update blackout', attributes
+      end 
     end
     context 'DELETE destroy' do
       before do
