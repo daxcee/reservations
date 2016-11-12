@@ -143,7 +143,7 @@ describe BlackoutsController, type: :controller do
         it { is_expected.to render_template(:new) }
         it 'should not save the blackout' do
           expect { post :create, blackout: attributes }.not_to\
-            change { Blackout.all.count }
+                                                          change { Blackout.all.count }
         end
       end
 
@@ -224,12 +224,14 @@ describe BlackoutsController, type: :controller do
 
     context 'PUT update' do
       shared_examples_for 'does not update blackout' do |attributes|
-        before { put :update, blackout: attributes }
+        before { put :update, id: FactoryGirl.create(:blackout), blackout: attributes }
 
         it { is_expected.to set_flash }
-        it { is_expected.to render_template(:new) }
+        it { is_expected.to render_template(:edit) }
         it 'should not save the blackout' do
-          expect(assigns(:blackout)[:notice]).not_to eq(@new_attributes[:notice])
+          expect(attributes).not_to be_nil
+          expect(assigns(:blackout)).not_to be_nil
+          expect(assigns(:blackout)[:notice]).not_to eq(attributes[:notice])
         end
       end
       

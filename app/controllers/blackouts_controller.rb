@@ -93,10 +93,30 @@ class BlackoutsController < ApplicationController
   end
 
   def update
+    p = blackout_params
+    p[:created_by] = current_user.id 
     @blackout.set_id = nil
-    if @blackout.update_attributes(blackout_params)
-      redirect_to @blackout, notice: 'Blackout was successfully updated.'
+
+    # check for conflicts
+    res = Reservation.overlaps_with_date_range(p[:start_date], p[:end_date])
+          .active
+
+    # save and exit
+    if res.empty? && @blackout.update_attributes(p)
+      redirect_to @blackout, notice: 'Blackout was successfully updated.' 
     else
+      if res.any?
+        msg = 'User won\'t be able to pick up his reservation for today.'
+      else
+        msg = 'The following reservation(s) will be unable to be returned: '
+        res.each do |res2|
+          msg += "#{res2.md_link}, "
+        end
+        msg = msg[0, msg.length - 2]\
+              + '. Please update their due dates and try again.'
+      end
+
+      flash[:error] = msg
       render action: 'edit'
     end
   end
@@ -119,7 +139,7 @@ class BlackoutsController < ApplicationController
 
   def blackout_params
     params.require(:blackout)
-          .permit(:start_date, :end_date, :notice, :blackout_type, :created_by,
-                  :set_id)
+      .permit(:start_date, :end_date, :notice, :blackout_type, :created_by,
+              :set_id)
   end
 end
